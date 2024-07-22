@@ -1,0 +1,59 @@
+﻿@page "/todo"
+@inject TodoService TodoService
+
+<h3>To-Do List</h3>
+
+<div class="input-group mb-3">
+    <input @bind="newTodo" class="form-control" placeholder="Enter new to-do item" />
+    <button @onclick="AddTodo" class="btn btn-primary">Add</button>
+</div>
+
+<ul class="list-group">
+    @foreach (var todo in todos)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @todo
+            <button @onclick="() => DeleteTodo(todo)" class="btn btn-danger btn-sm">Delete</button>
+        </li>
+    }
+</ul>
+
+@if (todos.Count == 0)
+{
+    <p>No to-do items yet.</p>
+}
+
+@code {
+    private List<string> todos = new List<string>();
+    private string newTodo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTodos();
+    }
+
+    private async Task LoadTodos()
+    {
+        todos = await TodoService.GetTodosAsync();
+    }
+
+    private async Task AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(newTodo))
+        {
+            await TodoService.AddTodoAsync(newTodo);
+            await LoadTodos(); // Reload todos after adding
+            newTodo = string.Empty;
+        }
+    }
+
+    private async Task DeleteTodo(string todo)
+    {
+        var index = todos.IndexOf(todo);
+        if (index != -1)
+        {
+            await TodoService.DeleteTodoAsync(index);
+            await LoadTodos(); // Reload todos after deleting
+        }
+    }
+}
